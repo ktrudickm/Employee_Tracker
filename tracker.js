@@ -58,11 +58,12 @@ const start = () => {
 };
 
 const allEmployees = () => {
-    const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, a.manager_id
-        FROM employee as a
-        join roles as r on a.role_id = r.id
-        join department as d on r.department_id = d.id
-        Order by a.id`;
+    const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
+    from employee as a
+    join roles as r on a.role_id = r.id
+    join department as d on r.department_id = d.id
+    left join employee e on a.manager_id = e.id
+    Order by a.id`;
     connection.query(query, (err, res) => {
         if (err) throw err;
         console.table(res);
@@ -79,10 +80,11 @@ const byDepartment = () => {
       choices: ['Engineering', "Sales", "Finance", "Marketing"]
     })
     .then((answer) => {
-      const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, a.manager_id
-      FROM employee as a
+      const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
+      from employee as a
       join roles as r on a.role_id = r.id
       join department as d on r.department_id = d.id
+      left join employee e on a.manager_id = e.id
       where d.dept_name = ?
       Order by a.id`;
       connection.query(query, [answer.dept], (err, res) => {
@@ -91,4 +93,28 @@ const byDepartment = () => {
         start();
       });
     }); 
-}
+};
+
+const byManager = () => {
+    inquirer
+    .prompt({
+      name: 'manager',
+      type: 'list',
+      message: 'Which manager would you like to view?',
+      choices: ['Kendall Trudick', "John Doe", "Sydney Riddle", "Sarah Lourd"]
+    })
+    .then((answer) => {
+      const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
+      from employee as a
+      join roles as r on a.role_id = r.id
+      join department as d on r.department_id = d.id
+      left join employee e on a.manager_id = e.id
+      where CONCAT(e.first_name, ' ' ,e.last_name) like ?
+      Order by a.id`;
+      connection.query(query, [answer.manager], (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        start();
+      });
+    }); 
+};
