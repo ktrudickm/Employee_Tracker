@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 
+// Setting up mySQL connection
 const connection = mysql.createConnection({
   host: 'localhost',
   // Your port; if not 3306
@@ -17,6 +18,7 @@ connection.connect((err) => {
     start();
 });
 
+// Function to start the app and prompt the user for what type of action they would like to take
 const start = () => {
     inquirer
       .prompt({
@@ -57,6 +59,7 @@ const start = () => {
       });
 };
 
+// Displays all Employees
 const allEmployees = () => {
     const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
     from employee as a
@@ -71,6 +74,7 @@ const allEmployees = () => {
     });
 };
 
+// Displays Employees by Department
 const byDepartment = () => {
     inquirer
     .prompt({
@@ -95,6 +99,7 @@ const byDepartment = () => {
     }); 
 };
 
+// Displays the Employees by Manager
 const byManager = () => {
     inquirer
     .prompt({
@@ -118,3 +123,54 @@ const byManager = () => {
       });
     }); 
 };
+
+// Adds employee to the database
+const addEmployee = () => {
+    inquirer
+    .prompt([
+    {
+        name: 'first_name',
+        type: 'input',
+        message: 'What is the first name of the Employee you would like to add?'
+    },
+    {
+        name: 'last_name',
+        type: 'input',
+        message: 'What is the last name of the Employee you are adding?',
+    },
+    {
+        name: 'title',
+        type: 'list',
+        message: 'What is the role title of the employee?',
+        choices: ['Software Engineer', 'Sales Person', 'Accountant', 'Marketing Specialist']
+    },
+    {
+        name: 'salary',
+        type: 'input',
+        message: "What is this Employee's salary?"
+    },
+    {
+        name: 'manager',
+        type: 'list',
+        message: 'Who does this Employee report to?',
+        choices: ['Kendall Trudick', 'John Doe', "Sydney Riddle", 'Sarah Lourd', 'None']
+    }])
+    .then((answers) => {
+        const query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES(?, ?, 
+            (SELECT id FROM roles WHERE title = ? ), 
+            (SELECT id FROM employee WHERE CONCAT(first_name," ",last_name) = ? ))`;
+        connection.query(query, [answers.first_name, answers.last_name, answers.title, answers.manager], (err, res) => {
+              if (err) throw err;
+              console.log('Employee Successfully Added.');
+              start();
+        });
+    });
+ };
+
+// Removes Employee from the Database
+
+
+// Updates an Employee's Role
+
+
+// Updates an Employee's Manager
