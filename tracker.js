@@ -293,3 +293,52 @@ async function updateRole() {
 
 
 // Updates an Employee's Manager
+async function updateManager() {
+  const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
+  from employee as a
+  join roles as r on a.role_id = r.id
+  join department as d on r.department_id = d.id
+  left join employee e on a.manager_id = e.id
+  WHERE a.manager_id is null
+  Order by a.id`;
+
+  connection.query(`SELECT * FROM employee;`, async (err, res) => {
+    let allEmployees = res.map(({id, first_name, last_name}) => (
+      {
+        name: `${first_name} ${last_name}`,
+        value: id
+      }
+    ))
+
+
+  const employee = await inquirer.prompt([{
+    name: 'emp',
+    type: 'list',
+    message: 'What is the name of the Employee you would like to update the manager for?',
+    choices: allEmployees
+  },
+  ])
+
+  let updateEmp = employee.emp;
+
+  
+  connection.query(query,  async (err, res) => {
+    const managers = res.map(({id, first_name, last_name}) =>(
+      {
+        name: `${first_name} ${last_name}`,
+        value: id
+      }
+    ));
+
+
+    const manager = await inquirer.prompt( {
+        name: 'manager',
+        type: 'list',
+        message: "Who would you like the Employee's new manager to be?",
+        choices: managers
+    })
+    
+
+    let newManager = manager.manager;
+
+}
