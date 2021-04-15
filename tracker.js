@@ -138,8 +138,6 @@ async function addEmployee() {
   Order by a.id`;
 
 
-
-
   const employee = await inquirer.prompt([{
     name: 'first_name',
     type: 'input',
@@ -153,11 +151,12 @@ async function addEmployee() {
   
   
 //get all the roles
-    connection.query(' SELECT roles.id, roles.title, department.dept_name AS department, roles.salary FROM roles LEFT JOIN department on roles.department_id = department.id;', async (err, res) => {
+  connection.query(' SELECT roles.id, roles.title, department.dept_name AS department, roles.salary FROM roles LEFT JOIN department on roles.department_id = department.id;', async (err, res) => {
     let roles = res.map(({id, title}) => (
-         { name: title,
-          value: id
-         }
+      { 
+        name: title,
+        value: id
+      }
     ))
 
 
@@ -169,18 +168,16 @@ async function addEmployee() {
     }])
 
     employee.role_id = role.title;
-    console.log(employee)
  
 
 
  connection.query(query,  async (err, res) => {
-  console.log(res)
-  const managers = res.map(({id, first_name, last_name}) =>({
-
-
-  name: `${first_name} ${last_name}`,
-  value: id
-  }))
+    const managers = res.map(({id, first_name, last_name}) =>(
+      {
+        name: `${first_name} ${last_name}`,
+        value: id
+      }
+    ));
 
 
     const manager = await inquirer.prompt( {
@@ -192,15 +189,57 @@ async function addEmployee() {
     
 
     employee.managerId = manager.manager;
-    console.log(employee)
+
+    const queryAdd = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+    VALUES (?, ?, ?, ?)`;
+   
+    connection.query(queryAdd, [employee.first_name, employee.last_name, employee.role_id, employee.managerId], async (err, res) => {
+      if (err) throw err;
+      console.log("Employee Successfully Added!");
+      start();
+    });
  })
-
-
-})//first query 
-
+})
 };
 
 // Removes Employee from the Database
+async function removeEmployee() {
+
+  connection.query(`SELECT * FROM employee;`, async (err, res) => {
+    let allEmployees = res.map(({id, first_name, last_name}) => (
+      {
+        name: `${first_name} ${last_name}`,
+        value: id
+      }
+    ))
+
+      console.log(allEmployees);
+
+
+  const employee = await inquirer.prompt([{
+    name: 'emp',
+    type: 'list',
+    message: 'What is the name of the Employee you would like to remove?',
+    choices: allEmployees
+  },
+  ])
+
+  let removeEmp = employee.emp;
+  console.log(removeEmp);
+
+  const query = `DELETE from employee WHERE id = ?`;
+
+  connection.query(query, [removeEmp], async (err, res) => {
+    if (err) throw err;
+    console.log('Employee successfully removed!');
+    start();
+  })
+
+  })
+}
+
+
+
 
 
 // Updates an Employee's Role

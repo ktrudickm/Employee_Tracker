@@ -14,14 +14,14 @@ CREATE TABLE employee
 
 CREATE TABLE department
 (
-  id INT NOT NULL,
+  id INT AUTO_INCREMENT NOT NULL,
   dept_name VARCHAR(30) NOT NULL,
   PRIMARY KEY(id)
 );
 
 CREATE TABLE roles
 (
-  id INT NOT NULL,
+  id INT AUTO_INCREMENT NOT NULL,
   title VARCHAR(30) NOT NULL,
   salary decimal not null,
   department_id INT NOT NULL,
