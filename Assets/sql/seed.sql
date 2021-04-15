@@ -3,11 +3,11 @@ INSERT INTO employee
 VALUES
 (1,"Kendall", "Trudick", 1, null),
 (2,"Cassie", "Gerzeny", 6, 1),
-(3,"Sam", "Dover", 3, 2),
+(3,"Sam", "Dover", 3, 4),
 (4,"John", "Doe", 2, null),
-(5,"Kevin", "Baxter", 5, 4),
+(5,"Kevin", "Baxter", 5, 6),
 (6,"Sydney", "Riddle", 4, null),
-(7,"Gabby","Redmond",8,7),
+(7,"Gabby","Redmond",8,8),
 (8,"Sarah", "Lourd", 7, null);
 select * from employee;
 
@@ -32,3 +32,11 @@ VALUES
 (7,"Marketing Lead",110000,3),
 (8,"Marketing Specialist",90000,3);
 select * from roles;
+
+SELECT a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
+from employee as a
+join roles as r on a.role_id = r.id
+join department as d on r.department_id = d.id
+left join employee e on a.manager_id = e.id
+where CONCAT(e.first_name, ' ' ,e.last_name) like 'Kendall Trudick'
+Order by a.id;

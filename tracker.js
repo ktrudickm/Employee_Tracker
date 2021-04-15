@@ -1,6 +1,9 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 
+
+
+
 // Setting up mySQL connection
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -125,47 +128,77 @@ const byManager = () => {
 };
 
 // Adds employee to the database
-const addEmployee = () => {
-    inquirer
-    .prompt([
-    {
-        name: 'first_name',
-        type: 'input',
-        message: 'What is the first name of the Employee you would like to add?'
-    },
-    {
-        name: 'last_name',
-        type: 'input',
-        message: 'What is the last name of the Employee you are adding?',
-    },
-    {
-        name: 'title',
-        type: 'list',
-        message: 'What is the role title of the employee?',
-        choices: ['Software Engineer', 'Sales Person', 'Accountant', 'Marketing Specialist']
-    },
-    {
-        name: 'salary',
-        type: 'input',
-        message: "What is this Employee's salary?"
-    },
-    {
+async function addEmployee() {
+  const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
+  from employee as a
+  join roles as r on a.role_id = r.id
+  join department as d on r.department_id = d.id
+  left join employee e on a.manager_id = e.id
+  WHERE a.manager_id is null
+  Order by a.id`;
+
+
+
+
+  const employee = await inquirer.prompt([{
+    name: 'first_name',
+    type: 'input',
+    message: 'What is the first name of the Employee you would like to add?'
+  },
+  {
+    name: 'last_name',
+    type: 'input',
+    message: 'What is the last name of the Employee you are adding?',
+  }])
+  
+  
+//get all the roles
+    connection.query(' SELECT roles.id, roles.title, department.dept_name AS department, roles.salary FROM roles LEFT JOIN department on roles.department_id = department.id;', async (err, res) => {
+    let roles = res.map(({id, title}) => (
+         { name: title,
+          value: id
+         }
+    ))
+
+
+    const role = await inquirer.prompt([ {
+      name: 'title',
+      type: 'list',
+      message: 'What is the role title of the employee?',
+      choices: roles
+    }])
+
+    employee.role_id = role.title;
+    console.log(employee)
+ 
+
+
+ connection.query(query,  async (err, res) => {
+  console.log(res)
+  const managers = res.map(({id, first_name, last_name}) =>({
+
+
+  name: `${first_name} ${last_name}`,
+  value: id
+  }))
+
+
+    const manager = await inquirer.prompt( {
         name: 'manager',
         type: 'list',
         message: 'Who does this Employee report to?',
-        choices: ['Kendall Trudick', 'John Doe', "Sydney Riddle", 'Sarah Lourd', 'None']
-    }])
-    .then((answers) => {
-        const query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES(?, ?, 
-            (SELECT id FROM roles WHERE title = ? ), 
-            (SELECT id FROM employee WHERE CONCAT(first_name," ",last_name) = ? ))`;
-        connection.query(query, [answers.first_name, answers.last_name, answers.title, answers.manager], (err, res) => {
-              if (err) throw err;
-              console.log('Employee Successfully Added.');
-              start();
-        });
-    });
- };
+        choices: managers
+    })
+    
+
+    employee.managerId = manager.manager;
+    console.log(employee)
+ })
+
+
+})//first query 
+
+};
 
 // Removes Employee from the Database
 
