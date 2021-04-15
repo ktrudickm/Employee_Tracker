@@ -213,8 +213,6 @@ async function removeEmployee() {
       }
     ))
 
-      console.log(allEmployees);
-
 
   const employee = await inquirer.prompt([{
     name: 'emp',
@@ -225,7 +223,6 @@ async function removeEmployee() {
   ])
 
   let removeEmp = employee.emp;
-  console.log(removeEmp);
 
   const query = `DELETE from employee WHERE id = ?`;
 
@@ -239,10 +236,60 @@ async function removeEmployee() {
 }
 
 
-
-
-
 // Updates an Employee's Role
+async function updateRole() {
+
+  connection.query(`SELECT * FROM employee;`, async (err, res) => {
+    let allEmployees = res.map(({id, first_name, last_name}) => (
+      {
+        name: `${first_name} ${last_name}`,
+        value: id
+      }
+    ))
+
+
+  const employee = await inquirer.prompt([{
+    name: 'emp',
+    type: 'list',
+    message: 'What is the name of the Employee you would like to update the role for?',
+    choices: allEmployees
+  },
+  ])
+
+  let updateEmp = employee.emp;
+
+  connection.query(' SELECT roles.id, roles.title, department.dept_name AS department, roles.salary FROM roles LEFT JOIN department on roles.department_id = department.id;', async (err, res) => {
+    let roles = res.map(({id, title}) => (
+      { 
+        name: title,
+        value: id
+      }
+    ))
+
+
+    const role = await inquirer.prompt([ {
+      name: 'title',
+      type: 'list',
+      message: 'What is the new role title of the employee?',
+      choices: roles
+    }])
+
+    let newRole = role.title;
+
+
+  const query = `UPDATE employee
+    SET role_id = ?
+    WHERE id = ?;`;
+
+  connection.query(query, [newRole, updateEmp], async (err, res) => {
+    if (err) throw err;
+    console.log('Employee role successfully updated!');
+    start();
+  })
+
+  })
+})
+}
 
 
 // Updates an Employee's Manager
