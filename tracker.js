@@ -378,20 +378,52 @@ const addDepartment = () => {
 };
 
 // Add a role
-const addRole = () => {
-  inquirer
-  .prompt({
-    name: 'newRole',
+async function addRole() {
+
+  const role = await inquirer.prompt({
+    name: 'role',
     type: 'input',
-    message: 'What is the title of the role you would like to add?',
+    message: 'What is the title of the role you would like to add?'
   })
-  .then((answer) => {
-    const query = `INSERT INTO role (dept_name) 
-    VALUES (?)`;
-    connection.query(query, [answer.dept], (err, res) => {
+  
+  
+//get all the departments
+  connection.query(' SELECT department.id, department.dept_name from department', async (err, res) => {
+    let depts = res.map(({id, dept_name}) => (
+      { 
+        name: dept_name,
+        value: id
+      }
+    ))
+
+
+    const department = await inquirer.prompt([ {
+      name: 'title',
+      type: 'list',
+      message: 'What is department does this role fall under?',
+      choices: depts
+    }])
+
+    role.department_id = department.title;
+
+    console.log(role)
+ 
+   
+    const salary = await inquirer.prompt( {
+        name: 'salary',
+        type: 'input',
+        message: 'What is the salary of this role?'
+    })
+    
+    console.log(salary)
+
+    const queryAdd = `INSERT INTO roles (title, salary, department_id)
+    VALUES (?, ?, ?)`;
+   
+    connection.query(queryAdd, [role.role, salary, role.department_id], async (err, res) => {
       if (err) throw err;
-      console.log('Department Successfully Added!')
+      console.log("Role Successfully Added!");
       start();
     });
-  }); 
+ })
 };
