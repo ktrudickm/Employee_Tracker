@@ -1,9 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 
-
-
-
 // Setting up mySQL connection
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -29,7 +26,7 @@ const start = () => {
         type: 'rawlist',
         message: 'What would you like to do?',
         choices: [
-          'View All Employees', "View All Employees by Department", "View All Employees by Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager"
+          'View All Employees', "View All Employees by Department", "View All Employees by Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "Add Department", "Add a Role"
         ],
       })
         .then((answer) => {
@@ -54,6 +51,12 @@ const start = () => {
                 break;
             case 'Update Employee Manager':
                 updateManager();
+                break;
+            case 'Add Department':
+                addDepartment();
+                break;
+            case 'Add a Role':
+                addRole();
                 break;
             default:
                 console.log(`Invalid action: ${answer.action}`);
@@ -355,4 +358,40 @@ async function updateManager() {
   })
 }
 
-addDepartment
+// Add a department
+const addDepartment = () => {
+  inquirer
+  .prompt({
+    name: 'dept',
+    type: 'input',
+    message: 'What is the name of the department you would like to add?',
+  })
+  .then((answer) => {
+    const query = `INSERT INTO department (dept_name) 
+    VALUES (?)`;
+    connection.query(query, [answer.dept], (err, res) => {
+      if (err) throw err;
+      console.log('Department Successfully Added!')
+      start();
+    });
+  }); 
+};
+
+// Add a role
+const addRole = () => {
+  inquirer
+  .prompt({
+    name: 'newRole',
+    type: 'input',
+    message: 'What is the title of the role you would like to add?',
+  })
+  .then((answer) => {
+    const query = `INSERT INTO role (dept_name) 
+    VALUES (?)`;
+    connection.query(query, [answer.dept], (err, res) => {
+      if (err) throw err;
+      console.log('Department Successfully Added!')
+      start();
+    });
+  }); 
+};
