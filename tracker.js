@@ -354,3 +354,5 @@ async function updateManager() {
   })
   })
 }
+
+addDepartment
