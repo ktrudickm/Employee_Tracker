@@ -26,7 +26,7 @@ const start = () => {
         type: 'rawlist',
         message: 'What would you like to do?',
         choices: [
-          'View All Employees', "View All Employees by Department", "View All Employees by Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "Add Department", "Add a Role"
+          'View All Employees', "View All Employees by Department", "View All Employees by Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "Add Department", "Add a Role", "View all Employees by Role"
         ],
       })
         .then((answer) => {
@@ -57,6 +57,9 @@ const start = () => {
                 break;
             case 'Add a Role':
                 addRole();
+                break;
+            case 'View all Employees by Role':
+                viewRoles();
                 break;
             default:
                 console.log(`Invalid action: ${answer.action}`);
@@ -406,7 +409,6 @@ async function addRole() {
 
     role.department_id = department.title;
 
-    console.log(role)
  
    
     const salary = await inquirer.prompt( {
@@ -415,7 +417,6 @@ async function addRole() {
         message: 'What is the salary of this role?'
     })
     
-    console.log(salary)
 
     const queryAdd = `INSERT INTO roles (title, salary, department_id)
     VALUES (?, ?, ?)`;
@@ -427,3 +428,40 @@ async function addRole() {
     });
  })
 };
+
+// View all employees by role
+async function viewRoles() {
+
+//get all the roles
+  connection.query(' SELECT roles.title, roles.id from roles', async (err, res) => {
+    let roles = res.map(({id, title}) => (
+      { 
+        name: title,
+        value: id
+      }
+    ))
+
+    const role = await inquirer.prompt([ {
+      name: 'title',
+      type: 'list',
+      message: 'What is department does this role fall under?',
+      choices: roles
+    }])
+
+    console.log(role);
+
+    const query = `select a.id, a.first_name, a.last_name, r.title, d.dept_name, r.salary, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager
+    from employee as a
+    join roles as r on a.role_id = r.id
+    join department as d on r.department_id = d.id
+    left join employee e on a.manager_id = e.id
+    where r.id = ?
+    Order by a.id`;
+   
+    connection.query(query, [role.title], async (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      start();
+    });
+  })
+}
