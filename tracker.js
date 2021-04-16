@@ -311,24 +311,24 @@ async function updateManager() {
     ))
 
 
-  const employee = await inquirer.prompt([{
-    name: 'emp',
-    type: 'list',
-    message: 'What is the name of the Employee you would like to update the manager for?',
-    choices: allEmployees
-  },
-  ])
+    const employee = await inquirer.prompt({
+      name: 'emp',
+      type: 'list',
+      message: 'What is the name of the Employee you would like to update the manager for?',
+      choices: allEmployees
+    }
+    )
 
-  let updateEmp = employee.emp;
+    let updateEmp = employee.emp;
 
   
-  connection.query(query,  async (err, res) => {
-    const managers = res.map(({id, first_name, last_name}) =>(
-      {
-        name: `${first_name} ${last_name}`,
-        value: id
-      }
-    ));
+    connection.query(query,  async (err, res) => {
+      const managers = res.map(({id, first_name, last_name}) => (
+        {
+          name: `${first_name} ${last_name}`,
+          value: id
+        }
+      ));
 
 
     const manager = await inquirer.prompt( {
@@ -341,4 +341,16 @@ async function updateManager() {
 
     let newManager = manager.manager;
 
+    const queryUp = `UPDATE employee
+    SET manager_id = ?
+    WHERE id = ?;`;
+
+  connection.query(queryUp, [newManager, updateEmp], async (err, res) => {
+    if (err) throw err;
+    console.log('Employee role successfully updated!');
+    start();
+  })
+
+  })
+  })
 }
